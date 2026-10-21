@@ -1,0 +1,6 @@
+# Synthetic-data venv (.venv-synth). distilabel 1.5.3 (Jan 2025) needs these older pins.
+distilabel[openai]==1.5.3
+datasets<4
+openai<2
+requests
+beautifulsoup4

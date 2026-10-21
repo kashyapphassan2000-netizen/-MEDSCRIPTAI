@@ -1,0 +1,17 @@
+# Extra settings used ONLY on AWS EC2: send container logs to CloudWatch Logs.
+# docker compose -f docker-compose.yml -f compose.aws.yml --env-file .env up -d
+services:
+  api:
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ${AWS_REGION:-us-east-1}
+        awslogs-group: /medscriptai/api
+        awslogs-create-group: "true"
+  vllm:
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ${AWS_REGION:-us-east-1}
+        awslogs-group: /medscriptai/vllm
+        awslogs-create-group: "true"

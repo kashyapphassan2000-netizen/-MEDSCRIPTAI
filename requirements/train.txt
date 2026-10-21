@@ -1,0 +1,6 @@
+# Training + data prep venv (.venv-train). Install with:
+#   uv pip install -r requirements/train.txt --torch-backend cu126
+unsloth==2026.10.7
+unsloth_zoo==2026.10.7
+jinja2
+huggingface_hub

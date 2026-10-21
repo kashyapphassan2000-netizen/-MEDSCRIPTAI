@@ -1,0 +1,52 @@
+# The full MedScriptAI stack on ONE GPU machine (Hyperstack VM or AWS EC2 g6).
+# Start:  docker compose --env-file .env up -d        (run inside the deploy/ folder)
+services:
+  vllm:
+    image: ${VLLM_IMAGE:-vllm/vllm-openai:v0.32.0}
+    command: >
+      --model unsloth/Llama-3.1-8B-Instruct --served-model-name base --dtype bfloat16
+      --max-model-len 4096 --gpu-memory-utilization 0.90
+      --enable-lora --max-loras 4 --max-lora-rank 16 --max-cpu-loras 8
+      --lora-modules qa=/adapters/sft-qa notes=/adapters/sft-notes summary=/adapters/sft-summary
+      qa-dpo=/adapters/dpo-qa
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      VLLM_ENABLE_CUDA_COMPATIBILITY: ${VLLM_ENABLE_CUDA_COMPATIBILITY:-0}
+    volumes:
+      - ${ADAPTERS_DIR:?set ADAPTERS_DIR in .env}:/adapters:ro
+      - ${HF_HOME:?set HF_HOME in .env}:/root/.cache/huggingface
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 40
+      start_period: 120s
+    restart: unless-stopped
+    # No "ports:" on purpose: vLLM is reachable ONLY by the api container, never from the internet.
+
+  api:
+    image: ${API_IMAGE:-medscriptai-api:v1}
+    environment:
+      VLLM_URL: http://vllm:8000/v1
+      API_KEY: ${API_KEY:?set API_KEY in .env}
+      MODEL_QA: ${MODEL_QA:-qa-dpo}
+      MODEL_NOTES: ${MODEL_NOTES:-notes}
+      MODEL_SUMMARY: ${MODEL_SUMMARY:-summary}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-medscriptai}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+    ports:
+      - "8080:8080"
+    depends_on:
+      vllm:
+        condition: service_healthy
+    restart: unless-stopped

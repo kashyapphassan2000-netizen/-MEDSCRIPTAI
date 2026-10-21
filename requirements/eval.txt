@@ -1,0 +1,12 @@
+# Evaluation venv (.venv-eval). Install with:
+#   uv pip install -r requirements/eval.txt --torch-backend cu126
+openai==3.35.1
+rouge-score==0.1.2
+bert-score==0.3.12
+transformers==5.20.2
+torch
+fastapi==0.156.8
+uvicorn==0.54.0
+langsmith==0.14.11
+httpx
+pytest

@@ -1,0 +1,35 @@
+@page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+:root { --ink: #1f2937; --muted: #6b7280; --code-bg: #f2f2f2; --blue: #DDEBF7; --blue-head: #BDD7EE; --line: #9ca3af; }
+* { box-sizing: border-box; }
+body { font-family: Inter, "DejaVu Sans", sans-serif; color: var(--ink); background: #fff; font-size: 10.5pt; line-height: 1.45; }
+.cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+.cover .title { font-size: 44pt; margin: 0; border: none; }
+.cover .subtitle { font-size: 16pt; color: #374151; margin-top: 8px; }
+.cover .meta { color: var(--muted); font-size: 11pt; margin-top: 24px; }
+.toc { page-break-after: always; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 24px; font-size: 9.5pt; }
+.toc li { margin: 2px 0; break-inside: avoid; }
+.toc .toc-h1 { font-weight: 700; margin-top: 8px; }
+.toc .toc-h2 { padding-left: 12px; }
+.toc a { color: var(--ink); text-decoration: none; }
+h1 { font-size: 20pt; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 3px solid #1d4ed8; page-break-before: always; }
+h2 { font-size: 14pt; margin: 18px 0 6px; color: #1e3a8a; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 12px 0 4px; page-break-after: avoid; }
+p { margin: 3px 0; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: var(--code-bg); padding: 0 3px; border-radius: 3px; }
+pre { font-family: "DejaVu Sans Mono", monospace; font-size: 8.3pt; background: var(--code-bg); padding: 8px 10px; border-radius: 4px;
+      white-space: pre-wrap; word-break: break-word; margin: 4px 0 8px; border-left: 3px solid #cbd5e1; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th, td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; text-align: left; }
+th { background: #ededed; }
+td.blue { background: var(--blue); }
+th.blue { background: var(--blue-head); }
+td code, th code { font-size: 8pt; word-break: break-word; }
+ul { margin: 3px 0 6px 18px; padding: 0; }
+.lbl { padding: 3px 8px; border-radius: 3px; margin: 4px 0; }
+.lbl.where { background: #eff6ff; } .lbl.where b { color: #1a5490; }
+.lbl.see { background: #f0fdf4; border-left: 3px solid #22c55e; } .lbl.see b { color: #1c7f38; }
+.lbl.watch { background: #fffbeb; border-left: 3px solid #f59e0b; } .lbl.watch b { color: #bf6100; }
+.lbl.check { background: #f5f3ff; border-left: 3px solid #8b5cf6; } .lbl.check b { color: #7333b3; }
+a { color: #1d4ed8; word-break: break-all; }

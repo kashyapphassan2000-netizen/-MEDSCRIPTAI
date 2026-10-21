@@ -80,9 +80,10 @@ with ThreadPoolExecutor(max_workers=16) as pool:
         n = len(outcomes)
         report = {f"{ma}_wins": round(outcomes.count(ma) / n, 3),
                   f"{mb}_wins": round(outcomes.count(mb) / n, 3),
-                  "ties": round(outcomes.count("tie") / n, 3), "n": n}
+                  "ties": round(outcomes.count("tie") / n, 3), "n": n,
+                  "per_item": outcomes}                    # kept for judge-vs-human agreement (Part 7)
 
-print(json.dumps(report, indent=1))
+print(json.dumps({k: v for k, v in report.items() if k != "per_item"}, indent=1))
 path = OUT / "reports" / f"judge_{a.task}_{a.mode}_{'_vs_'.join(a.models)}.json"
 path.parent.mkdir(parents=True, exist_ok=True)
 path.write_text(json.dumps(report, indent=1))

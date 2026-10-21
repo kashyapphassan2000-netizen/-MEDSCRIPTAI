@@ -18,11 +18,15 @@ GUIDE = ROOT / "docs" / "guide"
 OUT_BLOCKS = ROOT / "docs" / "build" / "blocks"
 TABS = [  # (source file, tab key, Google Docs tab title or None = existing MEDSCRIPT AI tab)
     ("00_start.md", "main", None),
-    ("04_basics.md", "part4", "MS Part 4 - Basics"),
-    ("05_intermediate.md", "part5", "MS Part 5 - Intermediate"),
-    ("06_advanced.md", "part6", "MS Part 6 - Advanced"),
-    ("07_elite.md", "part7", "MS Part 7 - Elite"),
-    ("08_reference.md", "part8", "MS Parts 8-14 - Reference"),
+    ("02a_hyperstack.md", "p2a", "MS Part 2A - Hyperstack + SSH + VS Code + WinSCP"),
+    ("02b_project.md", "p2b", "MS Part 2B - Project Folder + Tools on the VM"),
+    ("03_core.md", "p3", "MS Part 3 - Core Idea"),
+    ("04_basics.md", "p4", "MS Part 4 - Basics"),
+    ("05_intermediate.md", "p5", "MS Part 5 - Intermediate"),
+    ("06a_dpo_api.md", "p6a", "MS Part 6A - DPO + vLLM + API"),
+    ("06b_deploy.md", "p6b", "MS Part 6B - Docker + Cloud Deploy"),
+    ("07_elite.md", "p7", "MS Part 7 - Elite"),
+    ("08_reference.md", "p8", "MS Parts 8-14 - Reference"),
 ]
 
 
@@ -70,6 +74,8 @@ def parse(text):
             rows = []
             while i < len(lines) and lines[i].strip().startswith("|"):
                 cells = split_row(lines[i].strip())
+                if rows and len(cells) != len(rows[0]):
+                    break                                   # a different column count starts a NEW table
                 if not all(re.fullmatch(r":?-{2,}:?", c) for c in cells):
                     rows.append(cells)
                 i += 1

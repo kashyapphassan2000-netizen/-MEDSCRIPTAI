@@ -38,10 +38,11 @@ Five open-source projects worth studying:
 
 # PART 9 - Keep It Working
 | Task | How |
-| Save your work | push adapters and datasets to the Hub (Sections 4.6, 5.8); git add/commit/push your code changes; aws s3 sync outputs/reports to S3 |
+| Save your work | push adapters and datasets to the Hub (Sections 4.10, 5.12); git add/commit/push your code changes; aws s3 sync outputs/reports to S3 |
+| Push your code to GitHub (portfolio) | 1) github.com > New repository > name medscriptai > Create (no README). 2) on the VM: git remote add origin https://github.com/YOUR_GITHUB_USER/medscriptai.git. 3) git branch -M main. 4) git push -u origin main (user name + a GitHub personal access token as password: github.com > Settings > Developer settings > Personal access tokens) |
 | Back up the VM | your important files are on the Hub and in Git; the VM is disposable. To be extra safe, Hyperstack > Volumes > create a Shared Storage Volume and copy outputs/ there (see Hyperstack docs) |
-| Stop costs | Hibernate the Hyperstack VM (Section 2.12); TARGET=aws bash deploy/teardown.sh; delete unused Hub repos is optional (free) |
-| Restart after hibernate | Restore the VM; update the IP in ~/.ssh/config and WinSCP; on the VM: mkdir -p /ephemeral/hf-cache; restart FakeCloud (Section 2.10 Step 4); cd deploy && docker compose --env-file .env up -d |
+| Stop costs | Hibernate the Hyperstack VM (Section 2A.13); TARGET=aws bash deploy/teardown.sh; delete unused Hub repos is optional (free) |
+| Restart after hibernate | Restore the VM; update the IP in ~/.ssh/config and WinSCP; on the VM: mkdir -p /ephemeral/hf-cache; restart FakeCloud (Section 2B.11 Step 6); cd deploy && docker compose --env-file .env up -d |
 | Resume an interrupted training run | checkpoints are in outputs/checkpoints/RUN; change trainer.train() to trainer.train(resume_from_checkpoint=True) in 10_train_sft.py and run the same command again |
 | Update libraries safely | never upgrade in place: create .venv-train2, install the new versions, run 03_validate_jsonl.py and a --max-steps 20 training test, compare, then switch. Unsloth releases often pin new transformers/trl versions |
 | Update vLLM | change VLLM_IMAGE to the new tag, restart, re-run 30_generate_preds.py on 50 rows and compare outputs with the old version |
@@ -51,16 +52,19 @@ Five open-source projects worth studying:
 
 # PART 10 - Troubleshooting
 | Symptom | Likely cause | Exact fix (steps) |
+| Hyperstack connection problems (timeouts, publickey, VS Code stuck, WinSCP key) | see the dedicated table | MS Part 2A, Section 2A.14 |
+| SyntaxError / invalid character when running a script you created | the paste was cut, or curly quotes came from an edited copy | open the file, Ctrl+A, Delete, paste again from the grey box, Ctrl+S; check with python -m py_compile scripts/FILE.py |
+| ModuleNotFoundError: No module named 'common' | script run from the wrong folder | cd ~/medscriptai/scripts first (scripts import common.py from their own folder) |
 | ssh: Connection timed out | SSH access/firewall not enabled or wrong IP after restore | 1) Hyperstack > VM > Firewall: Enable SSH access. 2) Copy the current PUBLIC IP. 3) Update HostName in ~/.ssh/config |
-| torch.cuda.is_available() is False | CPU build of PyTorch installed | 1) source .venv-train/bin/activate. 2) uv pip install -r requirements/train.txt --torch-backend cu126 --reinstall |
+| torch.cuda.is_available() is False | CPU build of PyTorch installed | cd ~/medscriptai && uv pip install --python .venv-train -r requirements/train.txt --torch-backend cu126 --reinstall |
 | CUDA out of memory during training | batch too big, or vLLM/teacher still running on the GPU | 1) nvidia-smi to see who uses memory. 2) docker rm -f medscriptai-vllm medscriptai-teacher. 3) or add --batch 4 --grad-accum 4 |
 | Two <|begin_of_text|> tokens / quality worse than expected | chat template applied twice | use 10_train_sft.py as given (removeprefix(tokenizer.bos_token)); print train[0]["text"] and check it starts with <|start_header_id|> |
 | vLLM: "CUDA driver version is insufficient for CUDA runtime version" | image CUDA newer than the driver | 1) keep -e VLLM_ENABLE_CUDA_COMPATIBILITY=1 with the -cu129 image (data-centre GPU). 2) or deploy with the R595 / CUDA 13.2 OS image and VLLM_IMAGE=vllm/vllm-openai:v0.32.0 |
 | vLLM returns 404 "The model `qa` does not exist" | adapter not registered or wrong name | 1) curl localhost:8000/v1/models. 2) check outputs/adapters/sft-qa/adapter_config.json exists. 3) restart serve/start_vllm.sh |
 | Requests for different adapters are slow / queue | --max-loras left at the default 1 | start vLLM with --max-loras 4 (already in start_vllm.sh and docker-compose.yml) |
-| distilabel: No module named 'requests' / datasets errors | wrong environment or unpinned versions | 1) source .venv-synth/bin/activate. 2) uv pip install -r requirements/synth.txt |
+| distilabel: No module named 'requests' / datasets errors | wrong environment or unpinned versions | cd ~/medscriptai && uv pip install --python .venv-synth -r requirements/synth.txt, then source .venv-synth/bin/activate |
 | Docker build: 429 Too Many Requests pulling the base image | anonymous pull rate limit | 1) wait 10 minutes, or 2) docker build --build-arg BASE_IMAGE=python:3.12-slim ... (other registry), or 3) docker login to Docker Hub |
-| AWS: VcpuLimitExceeded when launching g6.xlarge | GPU quota still 0 | Service Quotas > Amazon EC2 > Running On-Demand G and VT instances > request 8 vCPUs (Section 2.11); wait for approval |
+| AWS: VcpuLimitExceeded when launching g6.xlarge | GPU quota still 0 | Service Quotas > Amazon EC2 > Running On-Demand G and VT instances > request 8 vCPUs (Section 2B.12); wait for approval |
 | aws CLI: Could not connect to the endpoint URL http://localhost:4566 | FakeCloud not running (e.g. after hibernate) | 1) nohup fakecloud --storage-mode persistent --data-path ~/fakecloud-data > ~/fakecloud.log 2>&1 &. 2) curl localhost:4566/_fakecloud/health |
 | Real AWS command accidentally went to FakeCloud (or the opposite) | AWS_ENDPOINT_URL still set / not set | echo $AWS_ENDPOINT_URL before every blue-column step; unset AWS_ENDPOINT_URL for real AWS |
 | teardown: DependencyViolation deleting the security group | instance still shutting down | run TARGET=aws bash deploy/teardown.sh again after 1-2 minutes (the script already retries 6 times) |
@@ -72,7 +76,7 @@ Requirements: generate 2,000 training pairs with distilabel from the notes data 
 Success criteria: the API returns explanations for 20 unseen notes; a readability score (for example Flesch-Kincaid grade) is at least 3 grades lower than the source note; the judge rates faithfulness at least 4/5 on 80% of items.
 ## 11.2 Medium - RL with verifiable rewards for QA
 Goal: improve qa-dpo with GRPO using the correct letter as the reward.
-Requirements: use TRL's GRPOTrainer (or Unsloth's GRPO support) on the 3,000 DPO prompts; reward = 1 for the correct letter, 0 otherwise, plus a small format reward; evaluate exactly as in Section 6.4 and 7.3.
+Requirements: use TRL's GRPOTrainer (or Unsloth's GRPO support) on the 1,891 DPO prompts; reward = 1 for the correct letter, 0 otherwise, plus a small format reward; evaluate exactly as in Sections 6A.7 and 7.3.
 Success criteria: a QA accuracy gain over qa-dpo whose 95% paired bootstrap interval excludes 0, with format_ok still above 99%.
 ## 11.3 Hard - production hardening on AWS
 Goal: a deployment a security reviewer would accept.
@@ -87,9 +91,9 @@ ssh -i $env:USERPROFILE\.ssh\hyperstack_ed25519 ubuntu@VM_IP
 nvidia-smi
 echo 'export HF_HOME=/ephemeral/hf-cache' >> ~/.bashrc
 curl -LsSf https://astral.sh/uv/install.sh | sh
-git clone -b claude/determined-carson-9p7115 https://github.com/kashyapphassan2000-netizen/-MEDSCRIPTAI.git
-uv venv .venv-train --python 3.12 && source .venv-train/bin/activate
-uv pip install -r requirements/train.txt --torch-backend cu126
+mkdir -p ~/medscriptai/{scripts,serve,api,deploy,tests,requirements,data,outputs}
+uv venv .venv-train --python 3.12
+uv pip install --python .venv-train -r requirements/train.txt --torch-backend cu126
 uv venv .venv-synth --python 3.12 && uv pip install --python .venv-synth -r requirements/synth.txt
 uv venv .venv-eval --python 3.12 && uv pip install --python .venv-eval -r requirements/eval.txt --torch-backend cu126
 curl -fsSL https://fakecloud.dev/install.sh | bash -s -- --version v0.51.0
@@ -119,7 +123,7 @@ python 30_generate_preds.py --task qa --models base qa       # (.venv-eval)
 python 31_eval_metrics.py
 python 32_judge.py --task notes --mode score --models base notes --n 100
 ```
-## Part 6 - DPO, serving, API, Docker, deployment
+## Part 6A/6B - DPO, serving, API, Docker, deployment
 ```
 python 21_build_dpo_pairs.py --task qa --limit 1500          # (.venv-synth)
 python 22_train_dpo.py --task qa                             # (.venv-train)
@@ -152,8 +156,8 @@ python 34_report.py
 | DPO loss at step 0 | 0.693 = ln 2 | policy equals reference |
 | vLLM LoRA flags | --enable-lora --max-loras 4 --max-lora-rank 16 --max-cpu-loras 8 | default max-loras is 1 |
 | Memory rule of thumb | 2 bytes/param (bf16), ~0.5-0.7 bytes/param (4-bit) | 8B: 16 GB vs ~6 GB |
-| Hyperstack states | SHUTOFF = still billed; HIBERNATED = GPU not billed, /ephemeral wiped | Section 2.12 |
-| FakeCloud | http://localhost:4566, account 123456789012, any keys | Section 2.10 |
+| Hyperstack states | SHUTOFF = still billed; HIBERNATED = GPU not billed, /ephemeral may be wiped | Section 2A.13 |
+| FakeCloud | http://localhost:4566, account 123456789012, any keys | Section 2B.11 |
 
 # PART 13 - Self-Test
 1. What happens if you remove .removeprefix(tokenizer.bos_token) from 10_train_sft.py?

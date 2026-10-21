@@ -2,30 +2,50 @@
  {
   "key": "main",
   "title": null,
-  "blocks": 247
+  "blocks": 43
  },
  {
-  "key": "part4",
+  "key": "p2a",
+  "title": "MS Part 2A - Hyperstack + SSH + VS Code + WinSCP",
+  "blocks": 206
+ },
+ {
+  "key": "p2b",
+  "title": "MS Part 2B - Project Folder + Tools on the VM",
+  "blocks": 225
+ },
+ {
+  "key": "p3",
+  "title": "MS Part 3 - Core Idea",
+  "blocks": 38
+ },
+ {
+  "key": "p4",
   "title": "MS Part 4 - Basics",
-  "blocks": 118
+  "blocks": 187
  },
  {
-  "key": "part5",
+  "key": "p5",
   "title": "MS Part 5 - Intermediate",
-  "blocks": 136
+  "blocks": 210
  },
  {
-  "key": "part6",
-  "title": "MS Part 6 - Advanced",
-  "blocks": 216
+  "key": "p6a",
+  "title": "MS Part 6A - DPO + vLLM + API",
+  "blocks": 217
  },
  {
-  "key": "part7",
+  "key": "p6b",
+  "title": "MS Part 6B - Docker + Cloud Deploy",
+  "blocks": 174
+ },
+ {
+  "key": "p7",
   "title": "MS Part 7 - Elite",
-  "blocks": 94
+  "blocks": 126
  },
  {
-  "key": "part8",
+  "key": "p8",
   "title": "MS Parts 8-14 - Reference",
   "blocks": 84
  }

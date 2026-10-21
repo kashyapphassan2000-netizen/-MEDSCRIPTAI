@@ -144,8 +144,13 @@ dpo_qa = [x for x in build(read_jsonl(RAW / "medmcqa_dpo.jsonl"), from_medmcqa)
 write_jsonl(PREF / "qa_dpo.jsonl", dpo_qa)
 
 # ---- notes + summary: one shared split so a test note is never a training note ----
-pairs = [p for p in build(read_jsonl(RAW / "clinical_notes.jsonl"), from_clinical)
-         if fits(p[0]) and fits(p[1])]
+pairs, seen_notes = [], set()
+for p in build(read_jsonl(RAW / "clinical_notes.jsonl"), from_clinical):
+    k = key(p[1]["messages"][1]["content"])             # the note text: ~13% of rows repeat a note
+    if k in seen_notes or not (fits(p[0]) and fits(p[1])):
+        continue                                         # duplicate note (would leak into test) or too long
+    seen_notes.add(k)
+    pairs.append(p)
 random.shuffle(pairs)
 splits = {"test": pairs[:200], "val": pairs[200:400], "dpo": pairs[400:1400], "train": pairs[1400:]}
 for split, rows in splits.items():

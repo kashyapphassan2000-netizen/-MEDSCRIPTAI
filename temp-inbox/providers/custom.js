@@ -19,10 +19,16 @@ const MAX_PER_BOX = 50;
 // address -> [messages]. Only addresses with a live inbox accept mail; everything else is rejected.
 const boxes = new Map();
 
-function startSmtp(port = Number(process.env.SMTP_PORT || 25)) {
+function startSmtp(port = Number(process.env.SMTP_PORT || 2525)) {
   const server = new SMTPServer({
+    // Capture mode: your app connects with any username/password. Nothing is relayed anywhere;
+    // mail is only stored for addresses that have an open inbox in the UI.
     authOptional: true,
-    disabledCommands: ["AUTH"],
+    authMethods: ["PLAIN", "LOGIN"],
+    allowInsecureAuth: true,
+    onAuth(auth, _session, cb) {
+      cb(null, { user: auth.username || "app" });
+    },
     size: MAX_SIZE,
     banner: "temp-inbox",
     logger: false,

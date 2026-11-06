@@ -26,6 +26,33 @@ Mail for `name@some-domain.com` is delivered to whatever server that domain's **
 So you can receive at a domain **only if you control its DNS**. You cannot receive at
 `@gmail.com`, `@euron.one`, or a company domain you don't own — those emails go to Google / that company.
 
+## Test your own app's OTP emails (capture mode) — e.g. `sede@work.euron.one`
+
+Use this when **your app** sends the OTP and you want to see it for any `name@work.euron.one`
+without touching the real mailboxes. Instead of receiving from the internet, you point your app's
+outgoing SMTP at this tool, so it captures the email before it ever leaves.
+
+1. Start the tool:
+   ```bash
+   CUSTOM_DOMAINS=work.euron.one npm start      # UI :4000, SMTP :2525
+   ```
+2. In your app's **staging/local** config (not live production, or real users stop getting emails):
+   ```
+   SMTP_HOST=<machine running temp-inbox>   (localhost if same machine)
+   SMTP_PORT=2525
+   SMTP_USER=anything        SMTP_PASS=anything     (any value is accepted)
+   SMTP_SECURE=false / TLS off
+   ```
+3. In the UI type `sede`, pick `work.euron.one`, press **+**.
+4. Trigger the OTP in your app for `sede@work.euron.one` → it shows up here with the code extracted.
+
+Mail to addresses without an open inbox is rejected (550), so your app gets an error for those.
+Nothing is ever relayed to the real internet.
+
+**Testing live production instead?** Then the email really goes to Zoho Mail (work.euron.one's MX).
+The Zoho admin for work.euron.one can enable a **catch-all** mailbox or create test users/aliases —
+that is the only way to read real production mail for that domain.
+
 ## Your-domain mode (any name @ any domain you own)
 
 1. Buy/own a domain (Namecheap, Cloudflare, GoDaddy… ~$1–10/yr). Subdomains work too (`work.euron.one` only if you own `euron.one`).
@@ -38,7 +65,7 @@ So you can receive at a domain **only if you control its DNS**. You cannot recei
    For a subdomain: `MX  work.yourdomain.com -> mail.yourdomain.com`.
 4. Run on the VPS:
    ```bash
-   CUSTOM_DOMAINS=yourdomain.com,work.yourdomain.com SMTP_PORT=25 sudo -E npm start
+   CUSTOM_DOMAINS=yourdomain.com,work.yourdomain.com SMTP_PORT=25 sudo -E npm start   # real MX needs port 25
    ```
    (or keep port 4000 for the web UI behind nginx; port 25 needs root or `setcap cap_net_bind_service`).
 5. Check: `dig MX yourdomain.com` shows your server. Create `test@yourdomain.com` in the UI and send it a mail from Gmail.
@@ -60,10 +87,10 @@ so you don't collect spam. After 10 minutes (or **Delete**) the address stops ac
 | `PORT` | 4000 | Web UI port |
 | `INBOX_MINUTES` | 10 | Inbox lifetime |
 | `CUSTOM_DOMAINS` | – | Comma-separated domains you own; enables your-domain mode |
-| `SMTP_PORT` | 25 | Inbound SMTP port for your-domain mode |
+| `SMTP_PORT` | 2525 | Inbound SMTP port (use 25 when the domain's MX points here) |
 
 ## Test
 
 ```bash
-npm test   # 11 tests: fake mail.tm/Guerrilla APIs + real SMTP delivery into your-domain mode
+npm test   # 12 tests: fake mail.tm/Guerrilla APIs + real SMTP delivery into your-domain mode
 ```

@@ -52,3 +52,12 @@ test("after delete, mail to that address is rejected", async () => {
   await req("DELETE", `/api/inboxes/${c.body.id}`);
   await assert.rejects(send("kiran@work.euron.one", "x", "y"), /550|No such mailbox/);
 });
+
+test("capture mode: an app that logs in with SMTP user/pass delivers into the inbox", async () => {
+  const c = await req("POST", "/api/inboxes", { username: "sede", domain: "work.euron.one", provider: "custom" });
+  assert.strictEqual(c.status, 201);
+  await nodemailer.createTransport({ host: "127.0.0.1", port, secure: false, ignoreTLS: true, auth: { user: "myapp", pass: "anything" } })
+    .sendMail({ from: "My App <noreply@work.euron.one>", to: "sede@work.euron.one", subject: "Login code", text: "Your OTP is 771204" });
+  const list = await req("GET", `/api/inboxes/${c.body.id}/messages`);
+  assert.strictEqual(list.body.messages[0].otp, "771204");
+});
